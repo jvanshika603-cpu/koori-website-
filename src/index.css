@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;1,300;1,400&family=Manrope:wght@400;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #1a1c20;
+  --color-surface-dim: #121417;
+  --color-on-surface: #eeeeee;
+  --color-on-surface-variant: #a0a4a8;
+  --color-primary: #393e46;
+  --color-primary-container: #4a505a;
+  --color-on-primary-container: #eeeeee;
+  --color-secondary-container: #2d333b;
+  --color-outline: #4a505a;
+  --color-outline-variant: #2d333b;
+  --color-accent: #f0e3ca;
+
+  --font-serif: "Noto Serif", serif;
+  --font-sans: "Manrope", sans-serif;
+
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans;
+  }
+}
+
+.glass-panel {
+  background: rgba(57, 62, 70, 0.3);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at center, #393e46 0%, #1a1c20 100%);
+}
+
+.glow-card {
+  box-shadow: 0 0 40px -10px rgba(57, 62, 70, 0.5);
+}
