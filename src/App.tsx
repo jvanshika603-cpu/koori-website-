@@ -2,10 +2,9 @@ import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSp
 import { Search, ShoppingBag, Wind, Heart, Waves, Camera, PlayCircle, Send, Menu, X, ArrowRight } from "lucide-react";
 import React, { useState, useRef, useEffect, ReactNode, Suspense } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Float, ContactShadows, PresentationControls, Stage, Center, Html } from "@react-three/drei";
 import * as THREE from "three";
-import { OBJLoader, MTLLoader } from "three-stdlib";
 
 const IMAGES = {
   hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuD_jijnUGwBmc55BIC4RY3qz92OtXevsfJDI_CUMZ8PwHPAIVfAmkM58IxmP2F-JZx6N_Obk99fugu13m4Sf5HLh4JMfiPpoWCvm0iyJtPuGQIo3i6TQLO5PUCMdgIK3lDboKpqxhOUC_RqFtcZANMc8iJ5SV5CTVdIDOxceJUIsJVhmvxur3OtHniha8Gmq5ruhq6fYA29MPFtVLUjkIVMQuH__v6pJqQwRHApTXMkoutotsK62sIOejr7GlqfAGS-SWflXBKIXg",
@@ -977,72 +976,32 @@ const AboutPage = () => {
   );
 };
 
-class ErrorBoundary extends React.Component<{children: ReactNode, fallback?: ReactNode}, {hasError: boolean, error: Error | null}> {
-  constructor(props: {children: ReactNode, fallback?: ReactNode}) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("ErrorBoundary caught an error", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
-      return (
-        <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center text-on-surface">
-          <h2 className="text-xl font-serif text-accent mb-4">Cannot display this component.</h2>
-          <p className="text-sm opacity-60 font-mono max-w-lg break-words">{this.state.error?.message}</p>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 const ShowcaseModel = () => {
-  const materials = useLoader(MTLLoader, "/obj_model/Meshy_AI_Teal_Essence_on_Marbl_0508120745_texture_obj/Meshy_AI_Teal_Essence_on_Marbl_0508120745_texture.mtl");
-  const obj = useLoader(OBJLoader, "/obj_model/Meshy_AI_Teal_Essence_on_Marbl_0508120745_texture_obj/Meshy_AI_Teal_Essence_on_Marbl_0508120745_texture.obj", (loader) => {
-    materials.preload();
-    loader.setMaterials(materials);
-  });
+  const meshRef = useRef<THREE.Mesh>(null);
   
-  useEffect(() => {
-    if (obj) {
-      obj.traverse((child: any) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          
-          const applyMaterialProps = (mat: any) => {
-            if (!mat) return;
-            mat.envMapIntensity = 2;
-            if (mat.name && mat.name.toLowerCase().includes('glass')) {
-              mat.transparent = true;
-              mat.opacity = 0.6;
-              mat.roughness = 0;
-              mat.metalness = 1;
-            }
-          };
-
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach(applyMaterialProps);
-            } else {
-              applyMaterialProps(child.material);
-            }
-          }
-        }
-      });
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.2;
+      meshRef.current.rotation.y += 0.005;
     }
-  }, [obj]);
+  });
 
-  return <primitive object={obj} />;
+  return (
+    <mesh ref={meshRef} castShadow receiveShadow>
+      <torusKnotGeometry args={[1, 0.3, 256, 64]} />
+      <meshPhysicalMaterial 
+        color="#083344"
+        roughness={0}
+        metalness={0.1}
+        transmission={0.9}
+        ior={1.5}
+        thickness={0.5}
+        envMapIntensity={2}
+        clearcoat={1}
+        clearcoatRoughness={0.1}
+      />
+    </mesh>
+  );
 };
 
 const ShowcasePage = () => {
@@ -1064,7 +1023,7 @@ const ShowcasePage = () => {
           
           <Reveal width="100%" delay={0.4}>
             <p className="text-xl lg:text-2xl font-serif italic text-on-surface/40 leading-relaxed max-w-sm">
-              Exploring the physical manifestation of scent through stone and teal.
+              Exploring the physical manifestation of scent through infinite algorithmic structures.
             </p>
           </Reveal>
           
@@ -1072,7 +1031,7 @@ const ShowcasePage = () => {
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-2">
                 <span className="text-[9px] font-sans font-bold tracking-[0.3em] text-accent uppercase">Material</span>
-                <p className="text-on-surface/60 font-light text-sm">Polished Marble</p>
+                <p className="text-on-surface/60 font-light text-sm">Crystalline Form</p>
               </div>
               <div className="space-y-2">
                 <span className="text-[9px] font-sans font-bold tracking-[0.3em] text-accent uppercase">Vibe</span>
@@ -1085,41 +1044,41 @@ const ShowcasePage = () => {
         {/* Center: 3D View */}
         <div className="lg:col-span-8 min-h-[500px] lg:min-h-[80vh] relative">
           <div className="absolute inset-0 z-0">
-            <ErrorBoundary>
-              <Canvas shadows camera={{ position: [0, 0, 5], fov: 45 }}>
-                <Suspense fallback={
-                  <Html center>
-                    <div className="text-on-surface/40 font-serif italic text-xl tracking-widest whitespace-nowrap">
-                      Summoning Essence...
-                    </div>
-                  </Html>
-                }>
-                  <Stage environment="city" intensity={0.5} shadows="contact">
-                    <Center>
-                      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                        <ShowcaseModel />
-                      </Float>
-                    </Center>
-                  </Stage>
-                  <PresentationControls
-                    global
-                    speed={1.5}
-                    rotation={[0, 0.3, 0]}
-                    polar={[-Math.PI / 3, Math.PI / 3]}
-                    azimuth={[-Math.PI / 1.4, Math.PI / 1.4]}
-                  >
-                    <mesh visible={false} />
-                  </PresentationControls>
-                </Suspense>
-              </Canvas>
-            </ErrorBoundary>
+            <Canvas shadows camera={{ position: [0, 0, 6], fov: 45 }}>
+              <color attach="background" args={["#161517"]} />
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+              <Suspense fallback={
+                <Html center>
+                  <div className="text-on-surface/40 font-serif italic text-xl tracking-widest whitespace-nowrap">
+                    Forming Geometry...
+                  </div>
+                </Html>
+              }>
+                <Environment preset="city" />
+                <PresentationControls
+                  global
+                  speed={1.5}
+                  rotation={[0, 0.3, 0]}
+                  polar={[-Math.PI / 3, Math.PI / 3]}
+                  azimuth={[-Math.PI / 1.4, Math.PI / 1.4]}
+                >
+                  <Center>
+                    <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                      <ShowcaseModel />
+                    </Float>
+                  </Center>
+                </PresentationControls>
+                <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={20} blur={2} far={4} />
+              </Suspense>
+            </Canvas>
           </div>
           
           {/* Controls Hint */}
           <div className="absolute bottom-12 right-12 flex items-center gap-6 opacity-30">
             <div className="flex flex-col items-end">
               <span className="text-[9px] font-sans font-bold tracking-[0.4em] uppercase">Interaction</span>
-              <p className="text-[11px] font-serif italic">Rotate to perceive every angle</p>
+              <p className="text-[11px] font-serif italic">Drag to rotate infinite form</p>
             </div>
             <div className="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center animate-pulse">
               <div className="w-1 h-1 bg-white rounded-full" />
@@ -1144,29 +1103,15 @@ const InquiryPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("sending");
-    setErrorMessage("");
-
-    try {
-      const response = await fetch("/api/inquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus("success");
-        setFormData({ name: "", email: "", subject: "", message: "" });
-      } else {
-        setStatus("error");
-        setErrorMessage(data.error || "Something went wrong.");
-      }
-    } catch (err) {
-      setStatus("error");
-      setErrorMessage("Failed to connect to the server.");
-    }
+    
+    // Fallback static site email handler using mailto protocol (Client-side)
+    const { name, email, subject, message } = formData;
+    const mailtoLink = `mailto:contact@koori.com?subject=${encodeURIComponent(subject || 'General Inquiry')}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
+    
+    window.location.href = mailtoLink;
+    
+    setStatus("success");
+    setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
   return (
